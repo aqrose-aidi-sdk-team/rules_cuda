@@ -1,6 +1,6 @@
 load("@rules_cuda//cuda:defs.bzl", "if_linux", "if_windows")
 
-load(":defs.bzl", "if_local_cuda", "cublas_version")
+load(":defs.bzl", "if_local_cuda", "cuda_package_version")
 
 package(
     default_visibility = ["//visibility:public"],
@@ -55,15 +55,15 @@ cc_library(
 cc_import(
     name = "cudart_lib",
     interface_library = "cuda/lib/x64/cudart.lib",
-    system_provided = 1,
+    shared_library = "cuda/bin/cudart64_"+ str(cuda_package_version("cuda_cudart")) + ".dll",
     target_compatible_with = ["@platforms//os:windows"],
 )
 
 cc_import(
     name = "cudadevrt_lib",
     interface_library = "cuda/lib/x64/cudadevrt.lib",
-    #system_provided = 1,
-    shared_library = glob(["cuda/bin/cudart64*.dll"])[0],
+    system_provided = 1,
+    #shared_library = "cuda/bin/cudart64_"+ str(cuda_package_version("cuda_cudart")) + ".dll",
     target_compatible_with = ["@platforms//os:windows"],
 )
 
@@ -153,14 +153,14 @@ cc_import(
 cc_import(
     name = "cublas_lib",
     interface_library = "cuda/lib/x64/cublas.lib",
-    shared_library = "cuda/bin/cublas64_" +  str(cublas_version()) + ".dll" ,
+    shared_library = "cuda/bin/cublas64_" +  cuda_package_version("libcublas") + ".dll" ,
     target_compatible_with = ["@platforms//os:windows"],
 )
 
 cc_import(
     name = "cublasLt_lib",
     interface_library = "cuda/lib/x64/cublasLt.lib",
-    shared_library = "cuda/bin/cublasLt64_" +  str(cublas_version()) + ".dll" ,
+    shared_library = "cuda/bin/cublasLt64_" +  cuda_package_version("libcublas") + ".dll" ,
     target_compatible_with = ["@platforms//os:windows"],
 )
 
@@ -312,7 +312,7 @@ cc_import(
 cc_import(
     name = "curand_lib",
     interface_library = "cuda/lib/x64/curand.lib",
-    system_provided = 1,
+    shared_library = "cuda/bin/curand64_" + cuda_package_version("libcurand")+".dll",
     target_compatible_with = ["@platforms//os:windows"],
 )
 
@@ -411,7 +411,7 @@ cc_import(
 cc_import(
     name = "cusolver_lib",
     interface_library = "cuda/lib/x64/cusolver.lib",
-    system_provided = 1,
+    shared_library = "cuda/bin/cusolver64_" + cuda_package_version("libcusolver")  + ".dll",
     target_compatible_with = ["@platforms//os:windows"],
 )
 
@@ -436,7 +436,7 @@ cc_import(
 cc_import(
     name = "cusparse_lib",
     interface_library = "cuda/lib/x64/cusparse.lib",
-    system_provided = 1,
+    shared_library = "cuda/bin/cusparse64_" + cuda_package_version("libcusparse") + ".dll",
     target_compatible_with = ["@platforms//os:windows"],
 )
 

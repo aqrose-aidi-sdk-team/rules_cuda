@@ -25,20 +25,30 @@ def _get_nvcc_version(repository_ctx, cuda_path):
             return version[:2]
     return [-1, -1]
 
+
+CUDA_SUB_PACKAGE = [
+    "libcurand",
+    "libcublas",
+    "cuda_cudart",
+    "libcusolver",
+    "libcusparse",
+    "libnpp",
+    "libnvjpeg",
+    "cuda_nvvp",
+    "cuda_nvprof",
+]
 def cuda_subpackage_version(repository_ctx, cuda_path):
-    cuda_version = ""
-    def_cublas_version = "\ndef cublas_version():\n    return str(%s)\n"
-    def_cudaruntime_version = "\ndef cuda_runtime_version():\n    return str(%s)\n"
+    cuda_version = "def cuda_package_version(package = None):"
+
     if _is_windows(repository_ctx):
         cuda_sub_ver = repository_ctx.read(cuda_path + "/version.json")
-        culbas_version = json.decode(cuda_sub_ver)["libcublas"]["version"].split(".")[0]
-        cuda_version = def_cublas_version % culbas_version
-        cuda_runtime_version = json.decode(cuda_sub_ver)["cuda_cudart"]["version"].split(".")[0]
-        cuda_version += def_cudaruntime_version % cuda_runtime_version
+        for sub_package in CUDA_SUB_PACKAGE:
+            cuda_version += "\n    if package == " +  "\"" + sub_package + "\":" + "\n          return str(" + str(json.decode(cuda_sub_ver)[sub_package]["version"].split(".")[0])
+            if sub_package == "cuda_cudart" and str(json.decode(cuda_sub_ver)[sub_package]["version"].split(".")[0]) == "11":
+                cuda_version += "0"
+            cuda_version += ")"
     else:
-        cuda_version = def_cublas_version % "12"
-        cuda_version += def_cudaruntime_version % "12"
-    print(cuda_version)
+        cuda_version +=  "    return 11"
     return cuda_version
 
 def detect_cuda_toolkit(repository_ctx):
@@ -92,8 +102,8 @@ def detect_cuda_toolkit(repository_ctx):
                 cuda_path = None
         if cuda_path == None:
             print("cuda set version not support")
-
-    cuda_path = repository_ctx.os.environ.get("CUDA_PATH", None)
+    if cuda_path == None:
+        cuda_path = repository_ctx.os.environ.get("CUDA_PATH", None)
     if cuda_path == None:
         ptxas_path = repository_ctx.which("ptxas")
         if ptxas_path:
