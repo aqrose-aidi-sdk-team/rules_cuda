@@ -25,6 +25,22 @@ def _get_nvcc_version(repository_ctx, cuda_path):
             return version[:2]
     return [-1, -1]
 
+def cuda_subpackage_version(repository_ctx, cuda_path):
+    cuda_version = ""
+    def_cublas_version = "\ndef cublas_version():\n    return str(%s)\n"
+    def_cudaruntime_version = "\ndef cuda_runtime_version():\n    return str(%s)\n"
+    if _is_windows(repository_ctx):
+        cuda_sub_ver = repository_ctx.read(cuda_path + "/version.json")
+        culbas_version = json.decode(cuda_sub_ver)["libcublas"]["version"].split(".")[0]
+        cuda_version = def_cublas_version % culbas_version
+        cuda_runtime_version = json.decode(cuda_sub_ver)["cuda_cudart"]["version"].split(".")[0]
+        cuda_version += def_cudaruntime_version % cuda_runtime_version
+    else:
+        cuda_version = def_cublas_version % "12"
+        cuda_version += def_cudaruntime_version % "12"
+    print(cuda_version)
+    return cuda_version
+
 def detect_cuda_toolkit(repository_ctx):
     """Detect CUDA Toolkit.
 
@@ -109,10 +125,15 @@ def detect_cuda_toolkit(repository_ctx):
 
     if cuda_path != None:
         nvcc_version_major, nvcc_version_minor = _get_nvcc_version(repository_ctx, cuda_path)
+    else :
+        fail()
+
+    cuda_sub_version = cuda_subpackage_version(repository_ctx, cuda_path)
 
     return struct(
         path = cuda_path,
         # this should have been extracted from cuda.h, reuse nvcc for now
+        sub_version = cuda_sub_version,
         version_major = nvcc_version_major,
         version_minor = nvcc_version_minor,
         # this is extracted from `nvcc --version`
@@ -142,6 +163,8 @@ def config_cuda_toolkit_and_nvcc(repository_ctx, cuda):
     else:
         repository_ctx.file("BUILD")  # Empty file
         defs_bzl_content += defs_if_local_cuda % "if_false"
+    cuda_sub_version= cuda.sub_version
+    defs_bzl_content += cuda_sub_version
     repository_ctx.file("defs.bzl", defs_bzl_content)
 
     # Generate @local_cuda//toolchain/BUILD
