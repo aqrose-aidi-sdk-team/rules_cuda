@@ -15,7 +15,6 @@ local_repository(
 load("@rules_cuda//cuda:repositories.bzl", "register_detected_cuda_toolchains", "rules_cuda_dependencies")
 
 rules_cuda_dependencies(
-    cuda_version = "11.8",
     dll_runtime_system_provided = False,
 )
 

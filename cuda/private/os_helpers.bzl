@@ -37,23 +37,18 @@ def cc_import_versioned_sos(name, shared_library):
     )
 
 def win_share_library_provided_runtime(name, system_provided = True):
-    """Creates a cc_library that depends on all versioned .so files with the given prefix.
-
-    If <shared_library> is path/to/foo.so, and it is a symlink to foo.so.<version>,
-    this should be used instead of cc_import.
-    The versioned files are typically needed at runtime, but not at build time.
-
+    """Creates a cc_import name "{}_lib".format(name).
     Args:
-        name: Name of the cc_library.
-        shared_library: Prefix of the versioned .so files.
+        name: Name of the cc_import.
+        system_provided: if need to find dll file(windows shared library runtime)
     """
-    so_paths = native.glob(["cuda/bin/{}64_*.dll".format(name)])
+    dll_paths = native.glob(["cuda/bin/{}64_*.dll".format(name)])
     interface_library = "cuda/lib/x64/{}.lib".format(name)
-    if len(so_paths) == 1 and not system_provided:
+    if len(dll_paths) == 1 and not system_provided:
         native.cc_import(
             name = name + "_lib",
             interface_library = interface_library,
-            shared_library = str(so_paths[0]),
+            shared_library = str(dll_paths[0]),
             target_compatible_with = ["@platforms//os:windows"],
         )
     else:
